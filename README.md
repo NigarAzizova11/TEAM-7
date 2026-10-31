@@ -67,18 +67,18 @@ docker-compose.yml  backend + PostgreSQL
 
 | Məlumat | Mənbə | UI-da |
 |---|---|---|
-| Dayanacaqlar (3600) | **REAL**, `dayanacaqlar.csv` | "real dayanacaq" |
-| Marşrutlar (62, 5, 14, 88), istiqamətlər, dayanacaq ardıcıllığı, xətt geometriyası | **REAL**, map.ayna.gov.az-ın öz API cavabından (`backend/data/ayna_routes.json`, 4 marşrut, xətt ~8 m dəqiqliyə sadələşdirilib) | "AYNA marşrutu" |
-| Demo A/B (yalnız `ayna_routes.json` olmadıqda ehtiyat) | Real dayanacaqlardan seçilmiş, **real xətt deyil**, sxematik xətt | "demo" |
+| Dayanacaqlar | **REAL**: `dayanacaqlar.csv` + CSV-də olmayanlar AYNA-nın öz dayanacaq adı/koordinatı ilə (`stop_type=AYNA`) | "real dayanacaq" |
+| 198 marşrut, istiqamətlər, dayanacaq ardıcıllığı, xətt geometriyası | **REAL**, map.ayna.gov.az-ın öz API cavabından (`backend/data/ayna_routes.json`, xətt ~8 m dəqiqliyə sadələşdirilib). AYNA-da olmayan/xəta verən marşrutlar (məs. 144, 531) yoxdur | "AYNA marşrutu" |
 | Avtobusların sayı, hədəf interval (`--headway`) | **VARSAYIM** (AYNA bunu vermir) | "SİMULYASİYA" |
-| Avtobuslar, GPS, sürət | **SİMULYASİYA** (backend daxilində, təkrarlana bilən) | "SİMULYASİYA" etiketi |
-| ETA | Sxematik xətt boyunca qalan məsafə / simulyasiya sürəti. **Real yol üzrə dəqiq vaxt vədi deyil** | ETA qeydi |
-| Sərnişin bildirişləri | İstifadəçilərdən (`source=user`) | — |
-| Demo bildirişləri | Ssenari tərəfindən yaradılır (`source=demo_seed`), açıq işarəli | "demo" sayı |
-| Xəbərdarlıqlar | Real analiz kodu nəticəsi; demo məlumatdan yarananlar | "DEMO" etiketi |
+| Avtobuslar, GPS, sürət (yalnız 12 marşrutda) | **SİMULYASİYA** (backend daxilində); xəritədə marşrut nömrəsi ilə göstərilir | "(simulyasiya)" |
+| ETA | Real xətt boyunca qalan məsafə / simulyasiya sürəti. **Real gəliş vədi deyil** | ETA qeydi |
+| Sıxlıq bildirişləri | İstifadəçilərdən (`source=user`) və ssenari tərəfindən (`source=demo_seed`, açıq işarəli) | "demo" sayı |
+| **Yol tıxacı** | **Sərnişin bildirişləri** (real trafik sensoru/Waze/Google yoxdur) | "təsdiqlənməyib" / səviyyə |
+| Alternativ yol | OSRM ictimai demo serveri (canlı tıxacı bilmir, yalnız tıxac nöqtəsindən yan keçən yol) | mavi qırıq xətt |
+| Xəbərdarlıqlar | Real analiz kodu nəticəsi; demo məlumatdan yarananlar "DEMO" işarəlidir | "DEMO" etiketi |
 
-`ayna_routes.json` map.ayna.gov.az saytının özünün `bus/getBusById` sorğusundan bir dəfə çıxarılıb (62, 5, 14, 88: sərnişin datasetində ən yüklü marşrutlardan). Backend işləyərkən AYNA API-sinə sorğu **göndərilmir**.
-Canlı GPS hələ yoxdur: avtobus mövqeləri simulyasiyadır. Sərnişin gediş datasetı təqdim edilmədiyi üçün həmin modul **qurulmayıb** (əsas funksiyaları bloklamır).
+AYNA datası `tools/fetch_ayna_routes_browser.js` ilə (və ya `fetch_ayna_routes.py`) bir dəfə çıxarılır. Backend işləyərkən AYNA API-sinə sorğu **göndərilmir**.
+Canlı GPS yoxdur. Sərnişin gediş datasetı (`bakubus_passenger-2026.csv`) hələ **inteqrasiya olunmayıb**.
 
 ## Sıxlıq hesablaması və qaydalar (hamısı `backend/app/config.py`-da konfiqurasiya olunur)
 
@@ -149,7 +149,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000     # tək worker (simulyator d�
 
 ### 2.0) Bütün AYNA marşrutlarını yükləmək (bir dəfə, öz kompüterinizdə)
 
-`backend/data/ayna_routes.json` hazır gəlir (yalnız 4 marşrut: 62, 5, 14, 88). Hamısını (209 marşrut) götürmək üçün host kompüterdə (Docker xaricində, Python 3 kifayətdir):
+`backend/data/ayna_routes.json` repoda hazırdır (199 marşrut, 3456 AYNA dayanacağının adı/koordinatı ilə). Yenidən götürmək üçün host kompüterdə (Docker xaricində, Python 3 kifayətdir):
 
 ```powershell
 python backend\tools\fetch_ayna_routes.py --out backend\data\ayna_routes.json     # ~1-2 dəq
@@ -225,15 +225,11 @@ açıq `demo_seed` işarəsi ilə təzələnir ki, nümayiş zamanı məlumat k�
 
 **2 dəqiqəlik ssenari:**
 
-1. **(0:00–0:20) Problem.** "Pik saatda bəzi avtobuslar dolu, arxasınca gələnlər boşdur; sərnişin sıxlığı görmür, operator isə datasız qərar verir."
-   Giriş ekranını göstərin: dayanacaqlar real, qalan hər şey açıq işarəli demo/simulyasiya.
-2. **(0:20–0:55) Sərnişin.** *Sərnişin* → Demo A, dayanacaq seçin → xəritədə avtobuslar, ETA, sıxlıq (rəng + mətn + "məlumat yoxdur" halı).
-   Bir avtobusa **"Yüksək"** bildirin → kart yenilənir. Dərhal təkrar bildirin → 60 san limiti. Keçmiş avtobusun "yaxınlaşan" kimi göstərilmədiyini qeyd edin.
-3. **(0:55–1:25) Operator.** *Operator* → Demo → **"Qruplaşmış avtobuslar"**. Xətlər tabında hədəf vs müşahidə olunan interval; Xəbərdarlıqlar tabında
-   kart: hadisə, mümkün səbəb, sübut (interval ölçmələri), tövsiyə ("təhlükəsiz nəzarət nöqtəsində intervalın bərpası"). Qeyd: sürücüyə əmr göndərilmir.
-4. **(1:25–1:50) Əsas qayda.** Demo → **"10 dəqiqə davam edən yüksək sıxlıq"** → **"Əlavə avtobus ehtiyatı ayrılmalıdır"**. Sübutda: 10+ dəq davamlılıq, əhatə,
-   diaqnoz "tutum çatışmazlığı ehtimalı" (intervallar normal) — yəni sual cavablanır: *interval yox, əlavə avtobus*.
-5. **(1:50–2:00) Dürüstlük və növbəti addım.** Real GPS, real yol geometriyası, autentifikasiya, sərnişin gediş datasetı hələ yoxdur (README məhdudiyyətlər).
+1. **(0:00–0:20) Problem.** "Pik saatda bəzi avtobuslar dolu, yollarda tıxac var; sərnişin görmür, operator isə datasız qərar verir." Real: dayanacaqlar və AYNA marşrut xətləri; simulyasiya: avtobuslar; tıxac: sərnişin bildirişləri.
+2. **(0:20–0:55) Sərnişin.** *Sərnişin* → `11` yazın, marşrutu seçin → xətt və avtobuslar (marşrut nömrəsi ilə), ETA, sıxlıq (rəng + mətn + "məlumat yoxdur"). Bir avtobusa **"Yüksək"** bildirin → kart yenilənir; dərhal təkrar → 60 san limiti.
+3. **(0:55–1:25) Tıxac.** "Yolda tıxac var — bildir" → xəttin üstündə yer → **Ağır**. Xətdə qırmızı hissə və **alternativ yol** (mavi qırıq xətt) görünür. *Operator* → "Yol tıxacı bildirişləri" və xəbərdarlıq; **"Təsdiq et"** basın.
+4. **(1:25–1:50) Əsas qayda.** *Demo* → **"10 dəqiqə davam edən yüksək sıxlıq"** → operatorda **"Əlavə avtobus ehtiyatı ayrılmalıdır"**; sübut: 10+ dəq davamlılıq, əhatə, diaqnoz "tutum çatışmazlığı ehtimalı".
+5. **(1:50–2:00) Dürüstlük və növbəti addım.** Real GPS, real trafik datası, autentifikasiya, sərnişin gediş datasetı və Flutter build hələ yoxdur (məhdudiyyətlər).
 
 ## Təhlükəsizlik və məhdudiyyətlər (açıq)
 
@@ -246,33 +242,29 @@ açıq `demo_seed` işarəsi ilə təzələnir ki, nümayiş zamanı məlumat k�
 - Analiz hər 5 san bütün demo xətlər üzrə son ~30 dəq GPS-i yaddaşa yükləyir: demo miqyası üçün kifayətdir, real şəbəkə üçün optimallaşdırma tələb olunur.
 - Tək backend prosesi nəzərdə tutulub (simulyator dövrü advisory lock ilə qorunur, lakin çoxlu worker lazımsızdır).
 
-## Yoxlama statusu (bu build-də faktiki nə işlədilib)
+## Yoxlama statusu (faktiki nə işlədilib)
 
 **İşlədilib və keçib** (Linux, PostgreSQL 16, Python 3.13):
-- Backend: **69 pytest testi** keçdi (CSV importu, koordinat formatı, mətn `stop_id`, təkrar import, sıxlıq köhnəlməsi, 10 dəqiqə qaydası,
-  təkrar xəbərdarlığın əngəllənməsi, həll olunma, hər ssenari, bildiriş cooldown-u, keçmiş vaxtlı bildirişin rədd edilməsi, ETA, demo sıfırlamanın real dayanacaqlara toxunmaması).
-- Testlərin həssaslığı **mutasiya ilə yoxlanıb** (davamlılıq tarixçəsi və ya bildiriş köhnəlməsi söndürüləndə müvafiq testlər uğursuz olur).
-- Alembic: `upgrade → downgrade → upgrade` uğurlu; CLI import/seed; real `uvicorn` prosesi ilə canlı tick dövrü və HTTP sorğuları (201/429, tək xəbərdarlıq).
-- `docker-compose.yml` sintaksisi və `docker compose config` (dəyişənlərin həlli, `.env` olmadıqda aydın xəta).
-- Flutter mənbə faylları üçün **yalnız tree-sitter sintaksis yoxlaması** (0 xəta).
+- Backend: **97 pytest testi** (CSV/AYNA importu, koordinat təmizləmə, çatışmayan dayanacağın AYNA-dan əlavəsi, 10 dəqiqə qaydası, ssenarilər, bildiriş limitləri, tıxac klasterləşməsi/səviyyə/xəbərdarlıq/operator qərarı, demo) + alternativ yol seçimi üçün Node testi. Əsas testlər mutasiya ilə yoxlanıb.
+- Alembic `upgrade → downgrade → upgrade`; real `uvicorn` ilə canlı tick dövrü.
+- Veb interfeys Chromium (Playwright) ilə yoxlanıb: marşrut axtarışı, tıxac bildirmə, 429 limiti, operatorda tıxac kartı və xəbərdarlıq, mobil (390 px) görünüşü. OSRM-in real cavabı brauzerdə yoxlanıb; tam axın (tıxac → OSRM → xəritə) OSRM saxta cavabı ilə sınanıb.
+- İstifadəçinin kompüterində: `docker compose up --build`, `import-routes` (198 marşrut), `seed-demo`.
 
-**İşlədilməyib (bu mühitdə mümkün olmadı) — özünüz yoxlayın:**
-- `docker compose up` / **Docker image build** (mühitdə Docker daemon yox idi).
-- **`flutter analyze`, `flutter test`, `flutter build`, Android və iOS build/işə salma** (Flutter/Dart SDK endirilə bilmədi; şəbəkə proksisi blokladı).
-  Dart kodu kompilyatorla yoxlanmayıb: ilk `flutter analyze` kiçik tip/API düzəlişləri tələb edə bilər (xüsusilə `flutter_map` v7 API-si).
-  `android/` və `ios/` qovluqları repoda yoxdur; `flutter create` ilə yaranır, `apply_dev_platform_config.py` isə yalnız şablonun simulyasiyasında sınanıb.
-- **Real `dayanacaqlar.csv` ilə import** (fayl təqdim edilməyib; importer real formata görə yazılıb və sintetik faylla sınanıb). Demo marşrutların seçimi real faylın dayanacaq sıxlığından asılıdır: seçilmiş zəncir keyfiyyətsizdirsə `python -m app.cli seed-demo --rebuild` işlədin və `app/services/demo.py`-da `ROUTE_SPECS` anchor koordinatlarını dəyişin.
-- Sərnişin gediş datasetı, `map-api.ayna.gov.az` endpointi.
+**İşlədilməyib — özünüz yoxlayın:**
+- **Flutter** (`mobile/`): heç vaxt kompilyasiya olunmayıb (`flutter analyze/test/build` yox), tıxac funksiyasını əhatə etmir, "Demo A/B" etiketləri qalıb. İşləyən interfeys veb səhifədir.
+- Operator "Təsdiq et / Yalan bildiriş" düymələri brauzerdə sınanmayıb (yalnız API testi).
+- Telefonda real açılış (PWA), Render/bulud yerləşdirmə.
+- Sərnişin gediş datasetı inteqrasiya olunmayıb; marşrut 144 və 9 marşrut (AYNA-da dayanacaq məlumatı yoxdur) yoxdur.
 
-## Yol tıxacı və alternativ yol (yeni)
+## Yol tıxacı və alternativ yol
 
-- Sərnişin marşrutu seçir, xətt xəritədə çıxır; **"Xəttdə tıxac bildir"** düyməsi ilə xəttin üstündə yeri seçib Yüngül/Orta/Ağır bildirir (`POST /api/traffic-reports`).
-- Tıxac səviyyəsi **yalnız sərnişin bildirişlərindən** hesablanır (son 15 dəq, fərqli sərnişinlər, 400 m-ə qədər yaxın bildirişlər bir tıxac sayılır). Real trafik sensoru/Waze/Google datası YOXDUR (açar/lisenziya tələb edir). 2 nəfərdən az bildiriş "Təsdiqlənməyib" sayılır.
-- **Ağır tıxac + ≥3 fərqli sərnişin** → operatora `TRAFFIC_JAM` xəbərdarlığı (hadisə, ehtimal olunan səbəb, sübut, tövsiyə); şərt itəndə avtomatik həll olunur.
-- **Alternativ yol**: orta/ağır tıxac olduqda brauzer OSRM (router.project-osrm.org, ictimai demo server) ilə tıxacdan yan keçən yol axtarır və xəritədə mavi qırıq xətt kimi göstərir. OSRM canlı tıxacı bilmir; müddət tıxacsız şəraitdə hesablanır; yol təklifdir, marşrut dəyişikliyi operator qərarıdır. Xidmət əlçatan deyilsə tıxac məlumatı yenə göstərilir.
-- Demo: sərnişin ekranında "Demo: tıxac simulyasiyası" (etiketli demo bildirişlər).
+- Sərnişin avtobus nömrəsini yazıb marşrutu seçir, xətt xəritədə çıxır; **"Yolda tıxac var — bildir"** düyməsi ilə xəttin üstündə yeri seçib Yüngül/Orta/Ağır bildirir (`POST /api/traffic-reports`; nöqtə xəttə proyeksiya olunur, xəttdən >150 m uzaqdırsa rədd edilir; eyni sessiya + istiqamət üçün 60 san limit).
+- Tıxac səviyyəsi **yalnız sərnişin bildirişlərindən** hesablanır (son 15 dəq; eyni sessiyanın yalnız son bildirişi sayılır; 400 m-dən yaxın bildirişlər bir tıxac sayılır). Real trafik sensoru/Waze/Google datası YOXDUR (açar/lisenziya tələb edir). 2 nəfərdən az bildiriş **"təsdiqlənməyib"** sayılır.
+- **Ağır bildiriş (orta bal ≥ 2.4)** operatora dərhal `TRAFFIC_JAM` xəbərdarlığı kimi düşür (1 nəfər: "təsdiqlənməyib" başlığı; ≥2 nəfər: təsdiqlənmiş). Operator tabında "Yol tıxacı bildirişləri" kartı bütün marşrutları (avtobus simulyasiyası olmayanları da) göstərir. Şərt itəndə (15 dəq) xəbərdarlıq avtomatik həll olunur.
+- **Operator qərarı:** xəbərdarlığın altında **"Təsdiq et"** (başlıq "operator təsdiq etdi" olur, yeni bildirişlərdə qalır) və tıxac üçün **"Yalan bildiriş (sil)"** (xəbərdarlıq bağlanır, istiqamətin sərnişin tıxac bildirişləri silinir) — `POST /api/operator/alerts/{id}/action`. Operator endpointləri autentifikasiyasızdır (prototip).
+- **Alternativ yol**: orta/ağır tıxac olduqda brauzer OSRM (router.project-osrm.org, ictimai demo server) ilə tıxacdan yan keçən yol axtarır (əvvəl OSRM alternativləri, tapılmasa tıxacın hər iki yanından 450 m kənar ara nöqtə ilə) və xəritədə mavi qırıq xətt kimi göstərir; təsirlənən dayanacaqlar siyahılanır. OSRM canlı tıxacı bilmir; müddət tıxacsız şəraitdə hesablanır; yol təklifdir, marşrut dəyişikliyi operator qərarıdır. Xidmət əlçatan deyilsə tıxac məlumatı yenə göstərilir.
+- Demo: sərnişin ekranında "Demo: tıxac simulyasiyası" (etiketli `demo_seed` bildirişlər).
 - Miqrasiya: `alembic upgrade head` (0003; Docker başlayanda avtomatik).
-- Avtobuslar simulyasiyadır; xəritədə marşrut nömrəsi ilə göstərilir.
 
 ## Telefonda tətbiq kimi açmaq (PWA)
 
