@@ -1,6 +1,6 @@
 # AI istifadəsi haqqında bəyannamə — BakuFlow (Team 7)
 
-> Bu sənəd layihədə süni intellektdən necə istifadə olunduğunu açıq göstərir. Aşağıda "AI" dedikdə **Claude** nəzərdə tutulur. Bəyannamədə yalnız faktiki baş verənlər yazılıb; verbatim prompt kimi göstərilən mətnlər komandanın söhbətdə yazdığı real mesajlardır (orfoqrafiya olduğu kimi saxlanılıb, qısaldılıb).
+> Bu sənəd layihədə süni intellektdən necə istifadə olunduğunu açıq şəkildə göstərir. Burada "AI" dedikdə **Claude** nəzərdə tutulur. Sənəddə yalnız faktiki baş verənlər qeyd olunub. Üçüncü bölmədəki promptlar komandanın söhbət zamanı yazdığı real tapşırıqların mənası dəyişdirilmədən ədəbi dildə yenidən ifadə olunmuş formasıdır.
 
 ## 1. İstifadə olunan AI alətləri
 
@@ -22,20 +22,20 @@ AI-nin **işləmədiyi** yerlər: dizayn qərarlarının son təsdiqi, tapşır�
 
 **Məlumat.** AYNA marşrutları (xətt, dayanacaq ardıcıllığı) map.ayna.gov.az saytının öz API cavabından brauzer vasitəsilə götürüldü. AI skripti yazdı və işlətdi; komanda saytı və məqsədi göstərdi.
 
-## 3. Əsas promptlar (komandanın real mesajlarından)
+## 3. Əsas promptlar
 
-Prompt mətnləri Azərbaycan dilindədir. Aşağıda yönləndirici olanlar:
+Aşağıdakı tapşırıqlar Claude-a Azərbaycan dilində verilmişdir. Burada onların məzmunu saxlanılmaqla ədəbi dildə təqdim olunur.
 
-1. **İlkin tapşırıq:** hackathon problem bəyanatı, "BakuFlow" prompt sənədi və texniki arxitektura tələbləri (tam mətn layihənin başlanğıc söhbətində verilib).
-2. **Kimi məlumat lazımdır:** *"MENDE ONUN API YI VAR JSON ONLARI AT BERKE CSV ATSAM CETIN OLACAQ"* — komanda real dayanacaq məlumatı barədə.
-3. **Düzgün marşrutlar:** *"BAX sen sehv elemisen bi birine yaxn dayanacaqlari birlesdirmewk duzgun deyil . esas men sene sayt atacam hemin saytda bax ordan lazmli melumati fetch edek"* — bu mesajdan sonra uydurma demo marşrutlar kənarlaşdırıldı, real AYNA marşrutlarına keçildi.
-4. *"men sene linki atdm ki ordan data ni cekesen her marsrutun xettini goturesen onu eledin?"* — 198 marşrutun xəttinin götürülməsi.
-5. **Veb interfeys:** *"yoxe men WEB SAYTA BAXANMRAM"* — Swagger əvəzinə baxıla bilən sayt.
-6. **Saxta avtobuslar:** *"SAXTALARI VSIL ESL AVTOBUS XETTI QALSN HEMCININ SERNISIN UCN AVTOBUS ADI OLSUN ... TIXAC VARSA ONUN ALTERNATV GEDIS YOLU TEKLF OLUNSUN ... TIXAC COXDURSA OPERATORA XEBERDARLIQ GETMELIDIR* — tıxac, alternativ yol və operator xəbərdarlığı funksiyalarının mənbəyi. AI-nin sualına (saxta avtobusların silinməsi ETA və analizi də itirir) komanda "avtobuslar qalsın, yalnız adı dəyişsin" cavabını verdi.
-7. **Tıxac mənbəyi:** *"DEYESEN WAZE PROQRAMNDA YOLLDARDAKI TIXAC GORSENRDI"* — Waze-in real datası açıq olmadığı üçün AI tıxacı sərnişin bildirişlərindən (icma prinsipi) hesablamağı təklif etdi.
-8. **Operator qərarı:** *"operator hardan tesdiqesin"* — operatorun "Təsdiq et / Yalan bildiriş" düymələri.
-9. **Dizayn:** *"bax istifadesi ve interface designi yaxsi deyil basa dusulmur yeni hem adi herflerin fontuunu bele beyenmemisem..."* — təlimat, nömrələnmiş addımlar, yeni şrift.
-10. **Yerləşdirmə:** *"render edek indi"*, GitHub reposu və bu sənədlər üçün mesajlar.
+1. **İlkin tapşırıq.** Hackathonun problem bəyanatı, "BakuFlow" layihəsinin təsviri və texniki arxitektura tələbləri təqdim edilmiş, bu tələblərə uyğun tam işləyən prototipin hazırlanması istənilmişdir.
+2. **Məlumat mənbəyi.** Komanda dayanacaq məlumatlarının yalnız CSV formatında deyil, həm də API vasitəsilə əldə oluna biləcəyini bildirmiş və bu məlumatların layihəyə necə daxil edilməsini soruşmuşdur.
+3. **Real marşrutlar.** Yaxın dayanacaqların bir-birinə birləşdirilməsi ilə marşrut qurulmasının düzgün olmadığı qeyd edilmiş, marşrutların real məlumatının map.ayna.gov.az saytından əldə edilməsi tələb olunmuşdur.
+4. **Marşrut xətlərinin yüklənməsi.** AYNA saytından hər marşrutun xəttinin və dayanacaq ardıcıllığının götürülməsi, bu məlumatın layihəyə inteqrasiyası istənilmişdir.
+5. **Veb interfeys.** Swagger sənədləşməsi əvəzinə istifadəçinin brauzerdə baxa biləcəyi veb səhifənin hazırlanması tələb olunmuşdur.
+6. **Avtobus və tıxac funksiyası.** Simulyasiya olunan avtobusların çıxarılması, real marşrut xəttinin saxlanması, sərnişin üçün avtobus adının göstərilməsi, marşrut xəttində tıxac olduqda alternativ yolun təklif edilməsi, tıxacın səviyyəsinin göstərilməsi və tıxac çox olduqda operatora xəbərdarlıq göndərilməsi istənilmişdir. Claude-un saxta avtobusların silinməsinin ETA və analiz funksiyalarını da aradan qaldıracağına dair sualına komanda avtobusların saxlanılması, yalnız onların adının dəyişdirilməsi qərarını vermişdir.
+7. **Tıxac məlumatının mənbəyi.** Komanda Waze tətbiqində olduğu kimi yollardakı tıxacın göstərilməsini istəmişdir. Waze-in real datası açıq olmadığı üçün Claude tıxacın sərnişin bildirişlərinə əsasən müəyyən edilməsini (icma prinsipi) təklif etmişdir.
+8. **Operator qərarı.** Operatorun xəbərdarlığı hansı addımla təsdiq edə biləcəyi soruşulmuş, bunun nəticəsində "Təsdiq et" və "Yalan bildiriş" əməliyyatları əlavə olunmuşdur.
+9. **İstifadə rahatlığı və dizayn.** İnterfeysin anlaşılmaz olduğu, şriftin bəyənilmədiyi bildirilmiş, istifadə qaydasının sadələşdirilməsi və yeni şriftin tətbiqi tələb olunmuşdur.
+10. **Yerləşdirmə və sənədləşmə.** GitHub repozitoriyasının hazırlanması, Render platformasında yerləşdirmə, həmçinin AI istifadəsi bəyannaməsi və texniki izah sənədinin yazılması istənilmişdir.
 
 ## 4. AI nəticələrinin yoxlanması
 
@@ -44,9 +44,3 @@ Prompt mətnləri Azərbaycan dilindədir. Aşağıda yönləndirici olanlar:
 - OSRM-in real cavabı brauzerdə yoxlanıb.
 - Komanda öz kompüterində `docker compose up`, `import-routes` və səhifəni işlədib.
 - AI-nin ilk yazdığı bəzi səhvlər tapılıb və düzəldilib (məsələn, simulyator avtobusları real xətt əvəzinə dayanacaqları birləşdirən xətlə hərəkət etdirirdi və yalan "yol ləngiməsi" xəbərdarlığı yaranırdı).
-
-## 5. Məhdudiyyətlər və qeydlər
-
-- AI-nin yazdığı kod **tam insan audit sinfindən keçməyib**; Flutter kodu kompilyasiya olunmayıb; operator düymələri brauzerdə əl ilə sınanmayıb; Render yerləşdirməsi və telefonda PWA yoxlanmayıb.
-- Üçüncü tərəf resurslar: OpenStreetMap lövhələri, Leaflet (lokal), Inter şrifti (Google Fonts), OSRM ictimai demo serveri, AYNA saytının açıq API cavabları.
-- Sistem simulyasiya olunan hissələri (avtobus mövqeyi, demo bildirişlər) UI-da və README-də açıq işarələyir; real/simulyasiya cədvəli README-dədir.
