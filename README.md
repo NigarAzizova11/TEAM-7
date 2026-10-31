@@ -13,6 +13,9 @@ Fərq: yalnız sıxlığı göstərmək yox, **GPS + intervallar + sərnişin bi
 
 **Komanda:** Team 7 · Hackathon: Digital Challenge
 
+**Canlı demo:** https://bakuflow.onrender.com/web/
+> Render-in pulsuz planı olduğu üçün sayt 15 dəqiqə istifadə olunmadıqda yatır; ilk açılış ~1 dəqiqə çəkə bilər.
+
 ## Strukturu
 
 ```
