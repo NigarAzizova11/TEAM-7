@@ -269,3 +269,7 @@ açıq `demo_seed` işarəsi ilə təzələnir ki, nümayiş zamanı məlumat k�
 ## Telefonda tətbiq kimi açmaq (PWA)
 
 Eyni Wi-Fi şəbəkəsində telefonun brauzerində `http://<kompüterin-IP>:8000/` açın (Windows-da IP: `ipconfig`; firewall icazə istəsə "Allow" edin). Chrome menyusundan "Add to Home screen" seçilsə, BakuFlow ikonu ilə tətbiq kimi açılır. Qeyd: bu veb tətbiqdir (PWA); Flutter kodu (`mobile/`) bu mühitdə heç vaxt kompilyasiya edilməyib və tıxac funksiyasını əhatə etmir.
+
+## Render-də yerləşdirmə
+
+Render → **New → Blueprint** → bu GitHub repo-su (`render.yaml` backend-i Docker kimi və PostgreSQL-i yaradır). İlk başlanğıcda `app.cli bootstrap` boş bazanı `ayna_routes.json` ilə (198 marşrut, AYNA dayanacaqları) doldurur və "normal" ssenarini qurur; təkrar başlayanda keçir. `DATABASE_URL` (`postgres://...`) avtomatik `postgresql+psycopg://` formasına çevrilir. Pulsuz planda sayt 15 dəq boş qalanda yatır (ilk açılış ~1 dəq), pulsuz PostgreSQL 30 gündən sonra silinir. Yerli (Docker Compose) işə salma bu yerləşdirmədən asılı deyil.

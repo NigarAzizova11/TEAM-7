@@ -4,6 +4,7 @@
   import-routes [--file data/ayna_routes.json]  AYNA real marşrut strukturunu (dayanacaq sırası + xətt) yüklə
   seed-demo [--scenario normal] [--rebuild]     Demo marşrut/avtobus strukturunu qur və ssenarini tətbiq et
   reset-demo                                    Dinamik demo məlumatı təmizlə, 'normal' ssenarini qur
+  bootstrap                                     Boş bazada: AYNA marşrutlarını yüklə + ssenari qur (artıq varsa keçir)
   status                                        Qısa vəziyyət
 """
 from __future__ import annotations
@@ -19,6 +20,9 @@ from .config import get_settings
 from .db import session_scope
 from .models import Alert, Bus, CrowdReport, GpsPosition, Route, Stop
 from .services import ayna_import, csv_import, demo
+
+
+_DEFAULT_SIM = {x for x in "62,5,14,88,2,3,7A,6,49,46,21,11".split(",")}
 
 
 def cmd_import(args: argparse.Namespace) -> int:
@@ -65,6 +69,29 @@ def cmd_seed(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_bootstrap(args: argparse.Namespace) -> int:
+    """Boş bazada ilk başlanğıc (Render və s.): AYNA marşrutlarını yüklə + simulyasiya/ssenari qur. Artıq yüklüdürsə heç nə etmir."""
+    s = get_settings()
+    with session_scope() as session:
+        has_routes = session.execute(select(func.count()).select_from(Route).where(Route.source == "ayna")).scalar() or 0
+        has_sim = demo.structure_exists(session)
+    if has_routes and has_sim:
+        print("bootstrap: məlumat artıq var, keçildi")
+        return 0
+    path = Path(args.file)
+    if not has_routes:
+        if not path.exists():
+            print(f"bootstrap: fayl tapılmadı: {path}", file=sys.stderr)
+            return 2
+        with session_scope() as session:
+            rep = ayna_import.import_routes(session, path, bus_headway_minutes=args.headway, simulate=_DEFAULT_SIM)
+        print(rep.summary().splitlines()[0])
+    with session_scope() as session:
+        demo.apply_scenario(session, "normal", clock.now(), s)
+    print("bootstrap: hazırdır")
+    return 0
+
+
 def cmd_status(_: argparse.Namespace) -> int:
     with session_scope() as session:
         def count(model) -> int:
@@ -99,6 +126,10 @@ def main(argv: list[str] | None = None) -> int:
     b.set_defaults(fn=cmd_seed)
     c = sub.add_parser("reset-demo")
     c.set_defaults(fn=lambda ns: cmd_seed(argparse.Namespace(scenario="normal", rebuild=False)))
+    bs = sub.add_parser("bootstrap")
+    bs.add_argument("--file", default="data/ayna_routes.json")
+    bs.add_argument("--headway", type=float, default=5.0)
+    bs.set_defaults(fn=cmd_bootstrap)
     d = sub.add_parser("status")
     d.set_defaults(fn=cmd_status)
     args = p.parse_args(argv)

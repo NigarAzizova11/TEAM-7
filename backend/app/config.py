@@ -4,6 +4,7 @@ Qeyd: buradakı hədlər DEMO qaydalarıdır, təsdiqlənmiş nəqliyyat standar
 """
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -70,6 +71,15 @@ class Settings(BaseSettings):
     # --- ETA ---
     eta_speed_window_seconds: int = 60
     eta_stopped_speed_mps: float = 0.3
+
+    @field_validator("database_url")
+    @classmethod
+    def _normalize_db_url(cls, v: str) -> str:
+        """Render/Heroku `postgres://` və ya `postgresql://` verir: psycopg3 sürücüsünə çevir."""
+        for prefix in ("postgres://", "postgresql://"):
+            if v.startswith(prefix):
+                return "postgresql+psycopg://" + v[len(prefix):]
+        return v
 
     @property
     def cors_origin_list(self) -> list[str]:

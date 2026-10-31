@@ -229,3 +229,20 @@ def test_invalid_ayna_stop_meta_is_ignored(db, tmp_path):
     (tmp_path / "r.json").write_text(json.dumps(doc), encoding="utf-8")
     rep = ayna_import.import_routes(db, tmp_path / "r.json")
     assert rep.added_stops == 0 and len(rep.missing_codes) == 1
+
+
+def test_import_works_without_csv_stops_when_file_has_stops_dict(db, tmp_path):
+    doc, _ = make_doc(tmp_path / "r.json")
+    doc["stops"] = {str(1000000 + i): {"n": f"AYNA {i}", "a": 40.4001, "o": 49.80 + i * 0.0045} for i in range(8)}
+    (tmp_path / "r.json").write_text(json.dumps(doc), encoding="utf-8")
+    rep = ayna_import.import_routes(db, tmp_path / "r.json")
+    assert rep.added_stops == 8 and rep.routes == 1 and not rep.missing_codes
+
+
+def test_database_url_normalized():
+    from app.config import Settings
+
+    s = Settings(database_url="postgres://u:p@h:5432/d", session_hash_secret="x")
+    assert s.database_url == "postgresql+psycopg://u:p@h:5432/d"
+    assert Settings(database_url="postgresql://u:p@h/d", session_hash_secret="x").database_url == "postgresql+psycopg://u:p@h/d"
+    assert Settings(database_url="postgresql+psycopg://u:p@h/d", session_hash_secret="x").database_url == "postgresql+psycopg://u:p@h/d"

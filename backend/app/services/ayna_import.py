@@ -132,8 +132,8 @@ def import_routes(
         if k in stops_by_norm:
             dup.add(k)
         stops_by_norm[k] = st
-    if not stops_by_norm:
-        raise AynaFormatError("'stops' cədvəli boşdur. Əvvəlcə: python -m app.cli import-stops")
+    if not stops_by_norm and not (isinstance(doc.get("stops"), dict) and doc["stops"]):
+        raise AynaFormatError("'stops' cədvəli boşdur və faylda 'stops' lüğəti yoxdur. Əvvəlcə: python -m app.cli import-stops")
     for k in dup:  # birmənalı olmayan kodlar istifadə edilmir
         stops_by_norm.pop(k, None)
 

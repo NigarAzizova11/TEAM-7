@@ -1,0 +1,25 @@
+# Render Blueprint: New + → Blueprint → bu repo. Backend (Docker) + PostgreSQL.
+services:
+  - type: web
+    name: bakuflow
+    runtime: docker
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bakuflow-db
+          property: connectionString
+      - key: SESSION_HASH_SECRET
+        generateValue: true
+      - key: DEMO_ENDPOINTS_ENABLED
+        value: "true"
+      - key: SIM_AUTOSTART
+        value: "true"
+databases:
+  - name: bakuflow-db
+    plan: free
+    databaseName: bakuflow
+    user: bakuflow
