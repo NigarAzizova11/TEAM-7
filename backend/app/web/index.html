@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="az">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BakuFlow</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b6e6e">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<style>
+:root{
+  --bg:#f4f6f9; --panel:#ffffff; --ink:#14202e; --muted:#5d6b7c; --line:#dfe5ec;
+  --brand:#0b6e6e; --brand-ink:#ffffff; --accent:#e8f3f3;
+  --low:#1c7c3f; --low-bg:#e3f4e9; --med:#8a5a00; --med-bg:#fff1d0; --high:#b3261e; --high-bg:#fde4e1;
+  --none:#4b5563; --none-bg:#e9ecf0; --warn-bg:#fff7e0; --shadow:0 1px 3px rgba(20,32,46,.08),0 4px 14px rgba(20,32,46,.06);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f161d; --panel:#18222c; --ink:#e7edf3; --muted:#9aa8b8; --line:#2a3744;
+  --brand:#3cc0b8; --brand-ink:#06201f; --accent:#17303a;
+  --low:#6fd596; --low-bg:#17301f; --med:#f1c35c; --med-bg:#3a2e12; --high:#ff8e84; --high-bg:#3d1b18;
+  --none:#b6c1cd; --none-bg:#26313c; --warn-bg:#352d12; --shadow:none;}}
+:root[data-theme="dark"]{
+  --bg:#0f161d; --panel:#18222c; --ink:#e7edf3; --muted:#9aa8b8; --line:#2a3744;
+  --brand:#3cc0b8; --brand-ink:#06201f; --accent:#17303a;
+  --low:#6fd596; --low-bg:#17301f; --med:#f1c35c; --med-bg:#3a2e12; --high:#ff8e84; --high-bg:#3d1b18;
+  --none:#b6c1cd; --none-bg:#26313c; --warn-bg:#352d12; --shadow:none;}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 "Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+header{background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:1200}
+.bar{max-width:1280px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.logo{font-weight:800;font-size:20px;letter-spacing:-.3px}
+.logo span{color:var(--brand)}
+nav{display:flex;gap:4px;background:var(--bg);padding:3px;border-radius:10px}
+nav button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:600;padding:7px 16px;border-radius:8px;cursor:pointer}
+nav button[aria-selected="true"]{background:var(--panel);color:var(--ink);box-shadow:var(--shadow)}
+.spacer{flex:1}
+.pill{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--warn-bg);color:var(--med);border:1px solid var(--line)}
+main{max-width:1280px;margin:0 auto;padding:16px}
+.grid{display:grid;grid-template-columns:minmax(320px,430px) 1fr;gap:16px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow)}
+.card+.card{margin-top:12px}
+h2{margin:0 0 12px;font-size:18px;font-weight:700;letter-spacing:-.2px}
+.step{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--brand);color:var(--brand-ink);font-size:12px;font-weight:700;margin-right:6px}
+.howto{background:var(--accent);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:14.5px}
+.howto b{color:var(--brand)}
+.bigbtn{width:100%;font:inherit;font-size:16px;font-weight:700;padding:13px 14px;border-radius:12px;border:0;background:var(--high);color:#fff;cursor:pointer}
+.bigbtn:disabled{opacity:.6}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:12px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.tile .n{font-size:28px;font-weight:800;letter-spacing:-.5px}
+.tile .l{font-size:13px;color:var(--muted)}
+h3{margin:0 0 6px;font-size:14px}
+label{display:block;font-size:14px;font-weight:600;color:var(--ink);margin:12px 0 5px}
+select,input[type=search]{width:100%;font:inherit;padding:11px 12px;border-radius:9px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+button.btn{font:inherit;font-weight:700;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:8px 12px;border-radius:9px;cursor:pointer}
+button.btn:hover{border-color:var(--brand)}
+button.primary{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--brand);outline-offset:1px}
+.muted{color:var(--muted)}
+.small{font-size:12.5px}
+#map,#opmap{height:520px;border-radius:14px;border:1px solid var(--line);z-index:0}
+@media (max-width:900px){#map,#opmap{height:360px}}
+.badge{display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:12.5px;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.badge::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+.b-LOW{background:var(--low-bg);color:var(--low)}
+.b-MEDIUM{background:var(--med-bg);color:var(--med)}
+.b-HIGH{background:var(--high-bg);color:var(--high)}
+.b-NONE{background:var(--none-bg);color:var(--none)}
+.bus{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px}
+.bus .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.bus .eta{font-size:22px;font-weight:800;letter-spacing:-.5px}
+.bus .eta small{font-size:12px;font-weight:600;color:var(--muted)}
+.report{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center}
+.report button{padding:5px 10px;font-size:13px}
+.alt{background:var(--accent);border:1px solid var(--brand);border-radius:12px;padding:10px 12px;margin-top:10px}
+.notice{background:var(--warn-bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px;margin-top:10px}
+.results{margin-top:6px;max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.results div{padding:8px 10px;border-bottom:1px solid var(--line);cursor:pointer}
+.results div:last-child{border-bottom:0}
+.results div:hover,.results div:focus{background:var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+.scroll{overflow-x:auto}
+.bar-wrap{height:8px;border-radius:6px;background:var(--none-bg);overflow:hidden;margin-top:4px;min-width:90px}
+.bar-fill{height:100%;background:var(--high)}
+.alert{border:1px solid var(--line);border-left:6px solid var(--high);border-radius:12px;padding:12px;margin-top:10px}
+.alert.resolved{border-left-color:var(--none);opacity:.8}
+.alert dl{margin:8px 0 0;display:grid;grid-template-columns:130px 1fr;gap:4px 10px;font-size:14px}
+.alert dt{color:var(--muted);font-weight:600}
+.alert dd{margin:0;overflow-wrap:anywhere}
+.alert pre{margin:0;white-space:pre-wrap;font:12.5px/1.4 ui-monospace,Consolas,monospace;background:var(--bg);padding:6px 8px;border-radius:8px}
+.scen{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.scen .card{margin:0}
+.scen .on{border-color:var(--brand);box-shadow:0 0 0 2px var(--brand)}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;z-index:3000;max-width:90vw;font-weight:600}
+.busicon.long{font-size:9px}
+.jam{border:1px solid var(--line);border-left:6px solid var(--none);border-radius:12px;padding:8px 10px;margin-top:8px}
+.jam.HIGH{border-left-color:var(--high)}.jam.MEDIUM{border-left-color:#e08a00}.jam.LOW{border-left-color:#c9a800}
+#map.picking{cursor:crosshair}
+#map.picking .leaflet-overlay-pane .leaflet-interactive,#map.picking .leaflet-marker-pane .leaflet-interactive{pointer-events:none}
+.busicon{border-radius:50%;color:#fff;font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45);width:30px;height:30px}
+.stopicon{width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid #0b6e6e}
+.sel-stop{width:18px;height:18px;border-radius:50%;background:#f5b800;border:3px solid #14202e}
+[hidden]{display:none!important}
+footer{max-width:1280px;margin:0 auto;padding:6px 16px 28px;color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="logo">Baku<span>Flow</span></div>
+    <nav role="tablist" aria-label="Rol">
+      <button role="tab" id="tab-passenger" aria-selected="true">Sərnişin</button>
+      <button role="tab" id="tab-operator" aria-selected="false">Operator</button>
+      <button role="tab" id="tab-demo" aria-selected="false">Demo idarəetməsi</button>
+    </nav>
+    <div class="spacer"></div>
+    <span class="pill" title="Dayanacaqlar real, marşrutlar/GPS/bildirişlər simulyasiyadır">real dayanacaq/marşrut · SİMULYASİYA olunan avtobuslar</span>
+  </div>
+</header>
+
+<main>
+<!-- ===================== SƏRNİŞİN ===================== -->
+<section id="v-passenger">
+  <div class="howto"><b>Necə istifadə olunur:</b> ① Avtobus nömrəsini yazın, marşrutu seçin. Xətt xəritədə görünəcək. ② Yolda tıxac varsa <b>«Tıxac bildir»</b> düyməsinə basın və xəritədə xəttin üstündə yeri seçin. ③ Tıxac olarsa, alternativ yol təklif olunacaq və operatora xəbər gedəcək.</div>
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h2>Avtobusu seçin</h2>
+        <label for="rq"><span class="step">1</span>Avtobus nömrəsi və ya adı</label>
+        <input id="rq" type="search" placeholder="məs. 11, 62, Gənclik" autocomplete="off">
+        <label for="selRoute"><span class="step">2</span>Marşrut</label>
+        <select id="selRoute"></select>
+        <label for="selDir"><span class="step">3</span>İstiqamət</label>
+        <select id="selDir"></select>
+        <label for="selStop"><span class="step">4</span>Dayanacaq (gözlədiyiniz)</label>
+        <select id="selStop"></select>
+        <details style="margin-top:12px"><summary class="small muted" style="cursor:pointer">Dayanacağı adına görə axtar</summary>
+        <input id="q" type="search" placeholder="məs. Gənclik, 28 May, Əhmədli" autocomplete="off" style="margin-top:6px">
+        <div id="results" class="results" hidden></div></details>
+        <div class="notice" id="routeNotice"></div>
+      </div>
+      <div class="card" id="trafficCard" hidden>
+        <h2>Yol tıxacı <span id="trafficBadge"></span></h2>
+        <div id="trafficList"></div>
+        <div id="detour"></div>
+        <p style="margin:12px 0 0"><button class="bigbtn" id="btnReportTraffic">Yolda tıxac var — bildir</button>
+          <button class="btn" id="btnCancelPick" hidden style="width:100%;margin-top:6px">Ləğv et</button></p>
+        <p class="small muted" id="trafficNote"></p>
+        <details style="margin-top:8px"><summary class="small muted">Demo: tıxac simulyasiyası</summary>
+          <p class="small muted">Etiketli DEMO bildirişlər yaradır (real deyil).</p>
+          <button class="btn" id="btnDemoJam">Ağır tıxac yarat (demo)</button>
+          <button class="btn" id="btnDemoJamClear">Demo tıxacı sil</button></details>
+      </div>
+      <div class="card" id="arrivalsCard" hidden>
+        <h2 id="arrTitle">Yaxınlaşan avtobuslar</h2>
+        <div id="alt"></div>
+        <div id="arrivals"></div>
+        <p class="small muted" id="arrNote"></p>
+      </div>
+    </div>
+    <div>
+      <div id="map" role="img" aria-label="Avtobusların xəritəsi"></div>
+      <p class="small muted">Rəng + yazı: sıxlıq həmişə mətnlə də göstərilir. "Məlumat yoxdur" = bildiriş yoxdur (aşağı sıxlıq demək deyil).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== OPERATOR ===================== -->
+<section id="v-operator" hidden>
+  <div class="tiles">
+    <div class="tile"><div class="n" id="tileAlerts">0</div><div class="l">aktiv xəbərdarlıq</div></div>
+    <div class="tile"><div class="n" id="tileJams">0</div><div class="l">tıxac bildirilən xətt</div></div>
+    <div class="tile"><div class="n" id="tileDirs">0</div><div class="l">izlənən marşrut istiqaməti</div></div>
+  </div>
+  <div class="card">
+    <h2>Yol tıxacı bildirişləri (sərnişinlərdən)</h2>
+    <div id="opJams"></div>
+    <p class="small muted">Bütün marşrutlar üzrə, son 15 dəqiqə. Bir nəfərin bildirişi "təsdiqlənməyib" kimi göstərilir, amma operatora düşür.</p>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <h2>Xətlər üzrə vəziyyət <span class="muted small" id="opTime"></span></h2>
+    <div class="scroll"><table>
+      <thead><tr><th>Xətt / istiqamət</th><th>Aktiv avtobus</th><th>İnterval (hədəf / müşahidə)</th><th>Sıxlıq</th><th>Məlumatın yeniliyi</th><th>Yüksək sıxlıq müddəti</th><th>Tıxac</th><th>Qeyd</th></tr></thead>
+      <tbody id="opRows"></tbody>
+    </table></div>
+    <p class="small muted" id="opRules"></p>
+  </div>
+  <div class="grid" style="margin-top:12px">
+    <div>
+      <div class="card">
+        <h2>Xəbərdarlıqlar <span class="badge b-HIGH" id="alertCount">0</span></h2>
+        <div id="alerts"></div>
+      </div>
+    </div>
+    <div>
+      <div id="opmap" role="img" aria-label="Operator xəritəsi"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== DEMO ===================== -->
+<section id="v-demo" hidden>
+  <div class="card">
+    <h2>Demo ssenariləri</h2>
+    <p class="muted small" id="demoStatus"></p>
+    <div class="notice" id="demoWarn"></div>
+    <div class="scen" id="scen" style="margin-top:12px"></div>
+    <p style="margin-top:14px"><button class="btn" id="btnReset">Demo sıfırla (normal ssenari)</button></p>
+  </div>
+  <div class="card">
+    <h3>10 dəqiqəlik qayda necə nümayiş olunur?</h3>
+    <p class="small muted">"10 dəqiqə davam edən yüksək sıxlıq" ssenarisi əvvəlki 10+ dəqiqənin GPS və bildirişlərini real analiz kodundan keçirir; qayda qısaldılmır. Operator tabında xəbərdarlıq "Əlavə avtobus ehtiyatı ayrılmalıdır" görünür.</p>
+  </div>
+</section>
+</main>
+<footer>
+  Dayanacaqlar və AYNA marşrutlarının strukturu (dayanacaq sırası, xətt) real məlumatdır; avtobusların sayı/mövqeyi, GPS, sıxlıq bildirişləri, hədəf interval və ETA simulyasiya/təxminidir. Sistem qəza və ya sürücü günahı iddia etmir və sürücülərə avtomatik əmr göndərmir.
+  Rol seçimi real autentifikasiya deyil.
+</footer>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="detour.js"></script>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const CROWD = {LOW: "Aşağı", MEDIUM: "Orta", HIGH: "Yüksək"};
+const COLOR = {LOW: "#1c7c3f", MEDIUM: "#c98500", HIGH: "#b3261e", NONE: "#4b5563"};
+const STATUS = {at_stop: "Dayanacaqdadır", approaching: "Yaxınlaşır", stopped: "Dayanıb", moving: "Hərəkətdədir", passed: "Dayanacağı keçib", offline: "Oflayn (GPS köhnə)"};
+const DIAG = {capacity: "Tutum çatışmazlığı ehtimalı", interval: "İnterval pozuntusu ehtimalı", unclear: "Səbəb qeyri-müəyyən"};
+const TKIND = {HIGH: "Ağır tıxac", MEDIUM: "Orta tıxac", LOW: "Yüngül tıxac", UNCONFIRMED: "Təsdiqlənməyib"};
+const TCOLOR = {HIGH: "#b3261e", MEDIUM: "#e08a00", LOW: "#c9a800", UNCONFIRMED: "#7a8794"};
+const KIND = {TRAFFIC_JAM: "Yol tıxacı", HIGH_CROWD_10MIN: "10 dəqiqəlik yüksək sıxlıq", BUNCHING: "Avtobus qruplaşması", POSSIBLE_SLOWDOWN: "Mümkün yol ləngiməsi", UNUSUAL_STOP: "Qeyri-adi dayanma"};
+const REASON = {no_data: "bildiriş yoxdur", no_active_buses: "aktiv avtobus yoxdur", low_coverage: "məlumat əhatəsi azdır"};
+const TILE = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+const ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+
+function esc(s){return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function fmtDur(sec){
+  if (sec == null) return "—";
+  sec = Math.round(sec);
+  if (sec < 60) return sec + " san";
+  const m = Math.floor(sec/60), s = sec % 60;
+  return s ? `${m} dəq ${s} san` : `${m} dəq`;
+}
+function fmtTime(iso){ if(!iso) return "—"; try{ return new Date(iso).toLocaleTimeString("az-AZ",{hour:"2-digit",minute:"2-digit",second:"2-digit"}); }catch(e){ return iso; } }
+function badge(level){
+  const k = level || "NONE";
+  return `<span class="badge b-${k}">${level ? CROWD[level] : "Məlumat yoxdur"}</span>`;
+}
+function toast(msg){
+  const t = document.createElement("div"); t.className = "toast"; t.setAttribute("role","status"); t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), 3800);
+}
+async function api(path, opts){
+  const r = await fetch(path, opts);
+  let body = null; try { body = await r.json(); } catch(e){}
+  if (!r.ok) { const e = new Error((body && body.detail) || ("HTTP " + r.status)); e.status = r.status; e.body = body; throw e; }
+  return body;
+}
+function sessionId(){
+  let id = null;
+  try { id = localStorage.getItem("bakuflow_sid"); } catch(e){}
+  if (!id || id.length < 16) {
+    const a = new Uint8Array(16); crypto.getRandomValues(a);
+    id = Array.from(a, b => b.toString(16).padStart(2, "0")).join("");
+    try { localStorage.setItem("bakuflow_sid", id); } catch(e){}
+  }
+  return id;
+}
+
+/* ---------------- tabs & polling (yalnız aktiv tab və görünən səhifə) ---------------- */
+let current = "passenger", timer = null;
+function show(view){
+  current = view;
+  for (const v of ["passenger","operator","demo"]) {
+    $("v-"+v).hidden = v !== view;
+    $("tab-"+v).setAttribute("aria-selected", String(v === view));
+  }
+  if (view === "passenger") setTimeout(() => map.invalidateSize(), 50);
+  if (view === "operator") { initOpMap(); setTimeout(() => opmap.invalidateSize(), 50); }
+  restartPolling();
+}
+for (const v of ["passenger","operator","demo"]) $("tab-"+v).onclick = () => show(v);
+function tickNow(){
+  if (document.hidden) return;
+  if (current === "passenger") { refreshPassenger(); refreshTraffic(); }
+  else if (current === "operator") refreshOperator();
+  else refreshDemo();
+}
+function restartPolling(){
+  clearInterval(timer);
+  tickNow();
+  timer = setInterval(tickNow, 5000);
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) restartPolling(); });
+
+/* ---------------- sərnişin ---------------- */
+const map = L.map("map").setView([40.4093, 49.8671], 12);
+L.tileLayer(TILE, {maxZoom: 19, attribution: ATTR}).addTo(map);
+let routes = [], dirDetail = null, lineLayer = null, stopLayer = L.layerGroup().addTo(map), busMarkers = new Map(), selMarker = null;
+let selDirId = null, selStopId = null;
+
+async function loadRoutes(){
+  try { routes = (await api("/api/routes")).routes; } catch(e){ toast("Marşrutlar yüklənmədi: " + e.message); return; }
+  if (!routes.length) { $("selRoute").innerHTML = '<option>Marşrut yoxdur (import-routes və seed-demo işlədin)</option>'; return; }
+  fillRoutes();
+  onRoute();
+}
+function fillRoutes(){
+  const q = ($("rq").value || "").trim().toLowerCase();
+  const prev = $("selRoute").value;
+  const list = routes.filter(r => !q || r.code.toLowerCase().startsWith(q) || r.name.toLowerCase().includes(q));
+  $("selRoute").innerHTML = list.length ? list.map(r => `<option value="${r.id}">${esc(r.name)}${r.simulated ? "" : " (yalnız xətt)"}</option>`).join("") : '<option value="">Tapılmadı</option>';
+  if (list.some(r => String(r.id) === prev)) $("selRoute").value = prev;
+}
+$("rq").addEventListener("input", () => { fillRoutes(); if ($("selRoute").value) onRoute(); });
+function onRoute(){
+  const r = routes.find(x => x.id == $("selRoute").value);
+  if (!r) return;
+  $("routeNotice").innerHTML = (r.source === "ayna" && !r.simulated)
+    ? "<b>Real AYNA marşrutu (yalnız xətt və dayanacaqlar):</b> bu marşrut üçün avtobus simulyasiyası qurulmayıb, canlı GPS də yoxdur. Xətt və dayanacaq sırası AYNA məlumatıdır."
+    : r.source === "ayna"
+    ? "<b>Real AYNA marşrutu:</b> dayanacaq ardıcıllığı və xətt AYNA məlumatıdır. <b>Avtobuslar, GPS və sıxlıq bildirişləri SİMULYASİYADIR</b> (canlı GPS hələ yoxdur)."
+    : "<b>Demo marşrut</b> — real xətt deyil, sxematik demo xəttidir. Avtobus GPS-i simulyasiyadır.";
+  $("selDir").innerHTML = r.directions.map(d => `<option value="${d.id}">${esc(d.name)}${d.buses ? ` (${d.buses} simulyasiya avtobusu)` : ""}</option>`).join("");
+  onDir();
+}
+async function onDir(keepStop){
+  selDirId = +$("selDir").value;
+  try { dirDetail = await api("/api/directions/" + selDirId); } catch(e){ toast(e.message); return; }
+  $("selStop").innerHTML = dirDetail.stops.map(s => `<option value="${esc(s.stop_id)}">${s.seq + 1}. ${esc(s.name)}</option>`).join("");
+  if (keepStop && dirDetail.stops.some(s => s.stop_id === keepStop)) $("selStop").value = keepStop;
+  else $("selStop").selectedIndex = Math.max(0, Math.floor(dirDetail.stops.length * 0.7)); // ortaya yaxın dayanacaq: avtobuslar yaxınlaşır
+  detourKey = null; jamLayer.clearLayers(); detourLayer.clearLayers(); setPicking(false);
+  drawDirection();
+  onStop();
+  refreshTraffic();
+}
+function drawDirection(){
+  if (lineLayer) map.removeLayer(lineLayer);
+  stopLayer.clearLayers();
+  lineLayer = L.polyline(dirDetail.polyline, {color: "#0b6e6e", weight: 4, opacity: .75, dashArray: "6 6"}).addTo(map);
+  for (const s of dirDetail.stops) {
+    L.marker([s.lat, s.lon], {icon: L.divIcon({className: "", html: '<div class="stopicon"></div>', iconSize: [10,10], iconAnchor: [5,5]})})
+      .bindTooltip(`${s.seq + 1}. ${esc(s.name)}`).addTo(stopLayer);
+  }
+  map.fitBounds(lineLayer.getBounds(), {padding: [30,30]});
+  for (const m of busMarkers.values()) map.removeLayer(m);
+  busMarkers.clear();
+}
+function onStop(){
+  selStopId = $("selStop").value;
+  const s = dirDetail && dirDetail.stops.find(x => x.stop_id === selStopId);
+  if (selMarker) { map.removeLayer(selMarker); selMarker = null; }
+  if (s) selMarker = L.marker([s.lat, s.lon], {icon: L.divIcon({className: "", html: '<div class="sel-stop"></div>', iconSize: [18,18], iconAnchor: [9,9]}), zIndexOffset: 500}).addTo(map);
+  $("arrivalsCard").hidden = !s;
+  refreshPassenger();
+}
+$("selRoute").onchange = onRoute;
+$("selDir").onchange = () => onDir();
+$("selStop").onchange = onStop;
+
+function busIcon(b, rc){
+  const c = COLOR[b.crowd.level || "NONE"];
+  const label = rc || b.code.split("-")[0];
+  return L.divIcon({className: "", html: `<div class="busicon${label.length > 3 ? " long" : ""}" style="background:${c}">${esc(label)}</div>`, iconSize: [30,30], iconAnchor: [15,15]});
+}
+function updateBusMarkers(buses, layerMap, targetMap, defaultCode){
+  const seen = new Set();
+  for (const b of buses) {
+    if (b.lat == null) continue;
+    seen.add(b.id);
+    const rc = b.route_code || defaultCode || b.code.split("-")[0];
+    const tip = `${rc} nömrəli avtobus · ${b.crowd.level ? CROWD[b.crowd.level] : "Məlumat yoxdur"}${b.speed_kmh != null ? " · " + b.speed_kmh + " km/s" : ""} (simulyasiya)`;
+    let m = layerMap.get(b.id);
+    if (!m) { m = L.marker([b.lat, b.lon], {icon: busIcon(b, rc), zIndexOffset: 1000}).addTo(targetMap); m.bindTooltip(tip); layerMap.set(b.id, m); }
+    else { m.setLatLng([b.lat, b.lon]); m.setIcon(busIcon(b, rc)); m.setTooltipContent(tip); }
+  }
+  for (const [id, m] of [...layerMap]) if (!seen.has(id)) { targetMap.removeLayer(m); layerMap.delete(id); }
+}
+
+let busy = false;
+async function refreshPassenger(){
+  if (!selDirId || !selStopId || busy) return;
+  busy = true;
+  try {
+    const a = await api(`/api/arrivals?direction_id=${selDirId}&stop_id=${encodeURIComponent(selStopId)}`);
+    $("arrTitle").textContent = `${a.stop.name} — yaxınlaşan avtobuslar`;
+    $("arrNote").textContent = `ETA: ${a.notes.eta}. GPS: ${a.notes.gps}. Xətt: ${a.notes.line}.`;
+    renderAlt(a.alternative);
+    renderArrivals(a.buses);
+    updateBusMarkers(a.buses, busMarkers, map, dirDetail.route.code);
+  } catch(e){ $("arrivals").innerHTML = `<div class="notice">Məlumat alınmadı: ${esc(e.message)}</div>`; }
+  finally { busy = false; }
+}
+function renderAlt(alt){
+  $("alt").innerHTML = alt ? `<div class="alt"><b>Daha boş alternativ:</b> növbəti avtobus <b>${esc(alt.bus_code)}</b> (${fmtDur(alt.eta_seconds)} sonra, cəmi +${fmtDur(alt.extra_wait_seconds)} gözləmə) —
+    sıxlıq ${badge(alt.level)} (birinci avtobus: ${badge(alt.first_level)}). <span class="small muted">${alt.reports_count} bildiriş, ən son ${fmtDur(alt.data_age_seconds)} əvvəl.</span></div>` : "";
+}
+function renderArrivals(buses){
+  if (!buses.length) { $("arrivals").innerHTML = '<div class="notice">Bu istiqamətdə avtobus yoxdur.</div>'; return; }
+  $("arrivals").innerHTML = buses.map(b => {
+    let eta = "—";
+    if (b.status === "at_stop") eta = "İndi";
+    else if (b.eta_seconds != null) eta = fmtDur(b.eta_seconds);
+    const c = b.crowd;
+    const info = c.reports_count ? `${c.reports_count} bildiriş, ən son ${fmtDur(c.latest_report_age_seconds)} əvvəl${c.demo_reports_count ? ` (o cümlədən ${c.demo_reports_count} demo)` : ""}` : "bildiriş yoxdur";
+    const rep = (b.status === "offline" || b.lat == null) ? "" :
+      `<div class="report"><span class="small muted">Bu avtobusda sıxlıq necədir?</span>
+        ${["LOW","MEDIUM","HIGH"].map(l => `<button class="btn" data-bus="${b.id}" data-level="${l}">${CROWD[l]}</button>`).join("")}</div>`;
+    return `<div class="bus"><div class="top"><div><b>${esc(dirDetail.route.code)}</b> <span class="muted small">avtobus ${esc(b.code.split("-").pop().replace(/^[A-Z]/, ""))} · ${esc(STATUS[b.status] || b.status)}${b.speed_kmh != null ? " · " + b.speed_kmh + " km/s" : ""}</span></div>
+      <div class="eta">${eta}${b.distance_to_stop_m != null && b.status !== "passed" ? `<br><small>${b.distance_to_stop_m} m</small>` : ""}</div></div>
+      <div>${badge(c.level)} <span class="small muted">${info}</span></div>${rep}</div>`;
+  }).join("");
+}
+$("arrivals").addEventListener("click", async (ev) => {
+  const btn = ev.target.closest("button[data-bus]"); if (!btn) return;
+  btn.disabled = true;
+  try {
+    await api("/api/reports", {method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({bus_id: +btn.dataset.bus, level: btn.dataset.level, session_id: sessionId()})});
+    toast("Təşəkkürlər! Bildiriş qəbul edildi.");
+    refreshPassenger();
+  } catch(e){
+    if (e.status === 429) toast(`Bu avtobus üçün bildiriş yaxınlarda göndərilib. ${e.body && e.body.retry_after_seconds ? e.body.retry_after_seconds + " san sonra" : "Bir az sonra"} yenidən cəhd edin.`);
+    else toast("Bildiriş göndərilmədi: " + e.message);
+  } finally { setTimeout(() => btn.disabled = false, 1200); }
+});
+
+/* ---------------- tıxac (sərnişin bildirişləri; real trafik sensoru yoxdur) ---------------- */
+const jamLayer = L.layerGroup().addTo(map), detourLayer = L.layerGroup().addTo(map);
+let picking = false, detourKey = null, detourHtml = "", tBusy = false;
+function setPicking(v){
+  picking = v;
+  $("map").classList.toggle("picking", v);
+  $("btnCancelPick").hidden = !v;
+  $("btnReportTraffic").hidden = v;
+  if (v) toast("Xəritədə xəttin üstündə tıxac olan yerə klikləyin");
+}
+$("btnReportTraffic").onclick = () => setPicking(true);
+$("btnCancelPick").onclick = () => { setPicking(false); map.closePopup(); };
+map.on("click", (e) => {
+  if (!picking || !selDirId) return;
+  const html = `<div><b>Bu yerdə tıxac nə qədərdir?</b><br>${["LOW","MEDIUM","HIGH"].map(l =>
+    `<button class="btn tbtn" data-l="${l}" style="margin:4px 4px 0 0">${{LOW: "Yüngül", MEDIUM: "Orta", HIGH: "Ağır"}[l]}</button>`).join("")}</div>`;
+  const pop = L.popup().setLatLng(e.latlng).setContent(html).openOn(map);
+  const el = pop.getElement();
+  el.querySelectorAll(".tbtn").forEach(b => b.onclick = async () => {
+    map.closePopup(); setPicking(false);
+    try {
+      await api("/api/traffic-reports", {method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({direction_id: selDirId, lat: e.latlng.lat, lon: e.latlng.lng, level: b.dataset.l, session_id: sessionId()})});
+      toast("Təşəkkürlər! Tıxac bildirişi qəbul edildi."); refreshTraffic();
+    } catch(err){
+      if (err.status === 429) toast("Bu istiqamət üçün bildiriş yaxınlarda göndərilib. " + (err.body && err.body.retry_after_seconds || "") + " san sonra yenidən cəhd edin.");
+      else toast(err.message);
+    }
+  });
+});
+async function refreshTraffic(){
+  if (!selDirId || tBusy) return;
+  tBusy = true;
+  try {
+    const t = await api(`/api/directions/${selDirId}/traffic`);
+    $("trafficCard").hidden = false;
+    $("trafficBadge").innerHTML = t.level ? `<span class="badge ${{HIGH: "b-HIGH", MEDIUM: "b-MEDIUM", LOW: "b-LOW", UNCONFIRMED: "b-NONE"}[t.level]}">${esc(t.label)}</span>` : '<span class="badge b-NONE">Bildiriş yoxdur</span>';
+    $("trafficNote").textContent = t.note;
+    jamLayer.clearLayers();
+    for (const j of t.jams) {
+      L.polyline(j.path, {color: TCOLOR[j.level], weight: 10, opacity: .85, dashArray: j.level === "UNCONFIRMED" ? "4 8" : null})
+        .bindTooltip(`${j.label} · ${j.reports} bildiriş`).addTo(jamLayer);
+    }
+    $("trafficList").innerHTML = t.jams.length ? t.jams.map(j => `<div class="jam ${j.level}"><b>${esc(j.label)}</b> — «${esc(j.near_stop)}» yaxınlığında
+      <div class="small muted">${j.reports} sərnişin bildirişi${j.demo_reports ? ` (o cümlədən ${j.demo_reports} demo)` : ""}, ən son ${fmtDur(j.latest_report_age_seconds)} əvvəl</div></div>`).join("")
+      : '<p class="muted small">Son ' + t.window_minutes + ' dəqiqədə bu xətdə tıxac bildirilməyib. Bildiriş olmaması tıxac olmadığını sübut etmir.</p>';
+    const jam = t.jams.filter(j => j.detour).sort((a, b) => b.reports - a.reports)[0];
+    await renderDetour(jam);
+  } catch(e){ $("trafficList").innerHTML = `<div class="notice">Tıxac məlumatı alınmadı: ${esc(e.message)}</div>`; }
+  finally { tBusy = false; }
+}
+async function renderDetour(jam){
+  detourLayer.clearLayers();
+  if (!jam) { detourKey = null; $("detour").innerHTML = ""; return; }
+  const h = jam.detour;
+  const key = [selDirId, h.from.lat.toFixed(4), h.from.lon.toFixed(4), h.to.lat.toFixed(4), h.to.lon.toFixed(4), jam.lat.toFixed(4)].join("|");
+  if (key !== detourKey) {
+    detourKey = key; detourHtml = '<div class="notice">Alternativ yol axtarılır…</div>'; $("detour").innerHTML = detourHtml;
+    let res = null, err = null;
+    try {
+      const u = `https://router.project-osrm.org/route/v1/driving/${h.from.lon},${h.from.lat};${h.to.lon},${h.to.lat}?alternatives=3&overview=full&geometries=geojson`;
+      const r = await fetch(u); const j = await r.json();
+      if (j.code !== "Ok") throw new Error(j.code || "xəta");
+      res = Detour.pickDetour(j.routes, h.avoid);
+      if (!res) {  // OSRM alternativ vermədi: tıxac nöqtəsinin hər iki yanından ara nöqtə ilə cəhd et
+        const found = [];
+        for (const v of Detour.viaCandidates(h.from, h.to, h.avoid, 450)) {
+          try {
+            const r2 = await fetch(`https://router.project-osrm.org/route/v1/driving/${h.from.lon},${h.from.lat};${v.lon},${v.lat};${h.to.lon},${h.to.lat}?overview=full&geometries=geojson`);
+            const j2 = await r2.json();
+            if (j2.code === "Ok") { const x = Detour.pickDetour(j2.routes, h.avoid); if (x) found.push({...x, fastest_distance_m: j.routes[0].distance | 0}); }
+          } catch(e2){}
+        }
+        found.sort((a, b) => a.duration_s - b.duration_s);
+        res = found[0] || null;
+      }
+    } catch(e){ err = e; }
+    if (key !== detourKey) return;
+    if (err) detourHtml = `<div class="notice">Alternativ yol xidməti (OSRM) əlçatan deyil: ${esc(err.message)}. Tıxac məlumatı yenə də göstərilir.</div>`;
+    else if (!res) detourHtml = '<div class="notice">Tıxacdan yan keçən başqa yol tapılmadı (digər yollar eyni nöqtədən keçir).</div>';
+    else {
+      const diff = res.distance_m - res.fastest_distance_m;
+      const names = h.affected_stops.map(x => esc(x.name));
+      detourHtml = `<div class="alt"><b>Alternativ yol təklifi</b> (xəritədə mavi qırıq xətt): təxminən ${(res.distance_m / 1000).toFixed(1)} km, ${fmtDur(res.duration_s)}
+        (tıxacsız şəraitdə), ən qısa yoldan ${diff >= 0 ? "+" : ""}${diff} m.
+        <div class="small muted">Bu yol marşrutun bu hissəsindəki dayanacaqları xidmət etmir: ${names.slice(0, 6).join(", ")}${names.length > 6 ? " və s." : ""}.
+        Müddət canlı trafik nəzərə alınmadan hesablanıb. Marşrut dəyişikliyi operator qərarıdır.</div></div>`;
+      window.__detourCoords = res.coords;
+    }
+    $("detour").innerHTML = detourHtml;
+  } else $("detour").innerHTML = detourHtml;
+  if (window.__detourCoords && /Alternativ yol təklifi/.test(detourHtml))
+    L.polyline(window.__detourCoords, {color: "#1565c0", weight: 5, opacity: .9, dashArray: "10 8"}).bindTooltip("Alternativ yol").addTo(detourLayer);
+}
+$("btnDemoJam").onclick = async () => {
+  try { await api(`/api/demo/traffic?direction_id=${selDirId}&level=HIGH&at=0.5`, {method: "POST"}); toast("Demo tıxac yaradıldı"); refreshTraffic(); } catch(e){ toast("Xəta: " + e.message); }
+};
+$("btnDemoJamClear").onclick = async () => {
+  try { await api(`/api/demo/traffic?direction_id=${selDirId}`, {method: "DELETE"}); detourKey = null; toast("Demo tıxac silindi"); refreshTraffic(); } catch(e){ toast("Xəta: " + e.message); }
+};
+
+/* axtarış */
+let qTimer = null;
+$("q").addEventListener("input", () => {
+  clearTimeout(qTimer);
+  const q = $("q").value.trim();
+  if (q.length < 2) { $("results").hidden = true; return; }
+  qTimer = setTimeout(async () => {
+    try {
+      const {stops} = await api("/api/stops?q=" + encodeURIComponent(q) + "&limit=15");
+      const box = $("results");
+      box.hidden = false;
+      box.innerHTML = stops.length ? stops.map((s, i) => `<div tabindex="0" data-i="${i}"><b>${esc(s.name)}</b> <span class="small muted">#${esc(s.stop_id)}</span><br>
+        <span class="small muted">${s.served_by.length ? "Bu dayanacaqdan keçən xətlər: " + s.served_by.map(x => esc(x.route_name)).join(", ") : "Yüklənmiş marşrutların heç birində yoxdur (real dayanacaq)"}</span></div>`).join("")
+        : '<div class="muted">Tapılmadı</div>';
+      box._stops = stops;
+    } catch(e){ toast("Axtarış xətası: " + e.message); }
+  }, 250);
+});
+async function pickStop(i){
+  const s = $("results")._stops[i]; if (!s) return;
+  $("results").hidden = true;
+  if (s.served_by.length) {
+    const link = s.served_by[0];
+    const r = routes.find(rt => rt.directions.some(d => d.id === link.direction_id));
+    if (r) { $("selRoute").value = r.id; $("selDir").innerHTML = r.directions.map(d => `<option value="${d.id}">${esc(d.name)} (${d.buses} avtobus)</option>`).join(""); $("selDir").value = link.direction_id; await onDir(s.stop_id); }
+  } else {
+    map.setView([s.lat, s.lon], 16);
+    L.popup().setLatLng([s.lat, s.lon]).setContent(`<b>${esc(s.name)}</b><br>Real dayanacaq. Yüklənmiş marşrutların heç biri buradan keçmir.`).openOn(map);
+  }
+}
+$("results").addEventListener("click", e => { const d = e.target.closest("[data-i]"); if (d) pickStop(+d.dataset.i); });
+$("results").addEventListener("keydown", e => { if (e.key === "Enter") { const d = e.target.closest("[data-i]"); if (d) pickStop(+d.dataset.i); } });
+
+/* ---------------- operator ---------------- */
+let opmap = null, opLayers = new Map(), opLines = [];
+function initOpMap(){
+  if (opmap) return;
+  opmap = L.map("opmap").setView([40.4093, 49.8671], 12);
+  L.tileLayer(TILE, {maxZoom: 19, attribution: ATTR}).addTo(opmap);
+}
+let opFitted = false;
+async function refreshOperator(){
+  if (!opmap) initOpMap();
+  try {
+    const [ov, al] = await Promise.all([api("/api/operator/overview"), api("/api/operator/alerts?status=ALL&limit=30")]);
+    renderOverview(ov); renderAlerts(al.alerts, ov.active_alerts_count);
+    // xəritə
+    const all = [];
+    for (const d of ov.directions) for (const b of d.buses) all.push({...b, id: b.id, route_code: d.route.code});
+    renderOpJams(ov);
+    updateBusMarkers(all, opLayers, opmap);
+    if (!opFitted && all.some(b => b.lat != null)) {
+      const pts = all.filter(b => b.lat != null).map(b => [b.lat, b.lon]);
+      opmap.fitBounds(pts, {padding: [40,40], maxZoom: 14}); opFitted = true;
+    }
+  } catch(e){ toast("Operator məlumatı alınmadı: " + e.message); }
+}
+function trafficCell(t){
+  if (!t) return '<span class="muted small">bildiriş yoxdur</span>';
+  const cls = {HIGH: "b-HIGH", MEDIUM: "b-MEDIUM", LOW: "b-LOW", UNCONFIRMED: "b-NONE"}[t.level];
+  return `<span class="badge ${cls}">${esc(t.label)}</span><br><span class="muted small">${t.jams.reduce((a, j) => a + j.reports, 0)} bildiriş</span>`;
+}
+let opJamLayer = null;
+function renderOpJams(ov){
+  const rows = [];
+  for (const t of Object.values(ov.traffic || {})) for (const j of t.jams) rows.push({t, j});
+  $("tileJams").textContent = rows.length; $("tileDirs").textContent = ov.directions.length; $("tileAlerts").textContent = ov.active_alerts_count;
+  const cls = {HIGH: "b-HIGH", MEDIUM: "b-MEDIUM", LOW: "b-LOW", UNCONFIRMED: "b-NONE"};
+  $("opJams").innerHTML = rows.length ? rows.sort((a, b) => b.j.reports - a.j.reports).map(({t, j}) =>
+    `<div class="jam ${j.level === "UNCONFIRMED" && j.heavy_unconfirmed ? "HIGH" : j.level}"><b>${esc(t.route)}</b> <span class="muted small">${esc(t.direction)}</span><br>
+     <span class="badge ${cls[j.level]}">${esc(j.heavy_unconfirmed ? "Ağır (təsdiqlənməyib)" : j.label)}</span>
+     <span class="small muted">${j.reports} sərnişin · ən son ${fmtDur(j.age_seconds)} əvvəl${j.demo_reports ? " · DEMO" : ""}</span></div>`).join("")
+    : '<p class="muted">Hazırda tıxac bildirişi yoxdur.</p>';
+  if (!opmap) return;
+  if (!opJamLayer) opJamLayer = L.layerGroup().addTo(opmap);
+  opJamLayer.clearLayers();
+  for (const [did, t] of Object.entries(ov.traffic || {})) for (const j of t.jams)
+    L.circle([j.lat, j.lon], {radius: 250, color: TCOLOR[j.level], fillColor: TCOLOR[j.level], fillOpacity: .25, weight: 3})
+      .bindTooltip(`${TKIND[j.level]} · ${j.reports} bildiriş`).addTo(opJamLayer);
+}
+function renderOverview(ov){
+  $("opTime").textContent = "· yeniləndi " + fmtTime(ov.server_time);
+  $("opRows").innerHTML = ov.directions.map(d => {
+    const c = d.crowd, iv = d.intervals;
+    const pct = Math.min(100, Math.round(c.high_for_seconds / c.high_threshold_seconds * 100));
+    const cov = `${c.coverage.buses_with_data}/${c.coverage.active_buses} avtobusdan məlumat`;
+    const notes = [];
+    if (d.bunching_detected) notes.push("Qruplaşma aşkarlanıb");
+    if (d.active_alert_ids.length) notes.push(`${d.active_alert_ids.length} aktiv xəbərdarlıq`);
+    if (c.level === "HIGH") notes.push(DIAG[d.diagnosis] || "");
+    return `<tr><td><b>${esc(d.route.name)}</b><br><span class="muted small">${esc(d.direction.name)}</span></td>
+      <td>${d.active_buses} / ${d.buses.length}</td>
+      <td>${fmtDur(d.target_interval_seconds)} / <b>${fmtDur(iv.median_s)}</b><br><span class="muted small">min ${fmtDur(iv.min_s)} · maks ${fmtDur(iv.max_s)}</span></td>
+      <td>${badge(c.level)}<br><span class="muted small">${cov}${c.reason_no_result ? " · " + esc(REASON[c.reason_no_result] || c.reason_no_result) : ""}</span></td>
+      <td>${c.latest_report_age_seconds != null ? fmtDur(c.latest_report_age_seconds) + " əvvəl" : "—"}</td>
+      <td>${c.high_for_seconds ? fmtDur(c.high_for_seconds) + " / " + fmtDur(c.high_threshold_seconds) : "—"}
+        <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%"></div></div></td>
+      <td>${trafficCell(ov.traffic && ov.traffic[d.direction.id])}</td>
+      <td class="small">${notes.map(esc).join("<br>") || "—"}</td></tr>`;
+  }).join("");
+  $("opRules").textContent = `Qayda: ${ov.rules.high_crowd_minutes} dəq fasiləsiz yüksək sıxlıq (bildirişlər ${ov.rules.crowd_window_minutes} dəq etibarlıdır, əhatə ≥50%) → əlavə avtobus xəbərdarlığı. ${ov.rules.note}`;
+}
+function evidenceText(ev, ind){
+  ind = ind || "";
+  if (ev === null || typeof ev !== "object") return String(ev);
+  if (Array.isArray(ev)) return ev.every(x => typeof x !== "object" || x === null) ? ev.join(", ") : ev.map(x => "\n" + ind + "- " + evidenceText(x, ind + "  ").trimStart()).join("");
+  return Object.entries(ev).map(([k, v]) => {
+    const nested = v !== null && typeof v === "object" && !(Array.isArray(v) && v.every(x => typeof x !== "object" || x === null));
+    return ind + k + ":" + (nested ? "\n" + evidenceText(v, ind + "  ") : " " + evidenceText(v, ind + "  "));
+  }).join("\n");
+}
+function renderAlerts(list, activeCount){
+  $("alertCount").textContent = activeCount;
+  if (!list.length) { $("alerts").innerHTML = '<p class="muted">Hələ xəbərdarlıq yoxdur.</p>'; return; }
+  $("alerts").innerHTML = list.map(a => `<div class="alert ${a.status === "ACTIVE" ? "" : "resolved"}">
+    <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><b>${esc(a.title)}</b>
+      <span><span class="badge ${a.status === "ACTIVE" ? "b-HIGH" : "b-NONE"}">${a.status === "ACTIVE" ? "Aktiv" : "Həll olunub"}</span>${a.is_demo ? ' <span class="badge b-MEDIUM">DEMO məlumat</span>' : ""}</span></div>
+    <div class="small muted">${esc(KIND[a.kind] || a.kind)} · ${esc(a.route.name)} · ${esc(a.direction.name)}</div>
+    <dl><dt>Hadisə</dt><dd>${esc(a.event)}</dd><dt>Mümkün səbəb</dt><dd>${esc(a.possible_cause)}</dd>
+    <dt>Ölçülmüş sübut</dt><dd><pre>${esc(evidenceText(a.evidence))}</pre></dd>
+    <dt>Tövsiyə</dt><dd>${esc(a.recommendation)}</dd>
+    <dt>Yaranma vaxtı</dt><dd>${fmtTime(a.created_at)}${a.resolved_at ? " · həll: " + fmtTime(a.resolved_at) : ""}</dd></dl>
+    ${a.status === "ACTIVE" ? `<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      ${(a.evidence && a.evidence.operator && a.evidence.operator.action === "CONFIRMED") ? '<span class="badge b-LOW">Operator təsdiq edib</span>' : `<button class="btn primary" data-act="confirm" data-id="${a.id}">Təsdiq et</button>`}
+      ${a.kind === "TRAFFIC_JAM" ? `<button class="btn" data-act="dismiss" data-id="${a.id}">Yalan bildiriş (sil)</button>` : ""}</div>` : ""}</div>`).join("");
+}
+
+$("alerts").addEventListener("click", async (ev) => {
+  const b = ev.target.closest("button[data-act]"); if (!b) return;
+  b.disabled = true;
+  try { await api(`/api/operator/alerts/${b.dataset.id}/action`, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({action: b.dataset.act})});
+    toast(b.dataset.act === "confirm" ? "Təsdiq edildi" : "Yalan bildiriş kimi silindi"); refreshOperator(); }
+  catch(e){ toast("Xəta: " + e.message); b.disabled = false; }
+});
+
+/* ---------------- demo ---------------- */
+async function refreshDemo(){
+  try {
+    const st = await api("/api/demo/status");
+    $("demoStatus").textContent = `Real dayanacaq sayı: ${st.stops_loaded}. Aktiv ssenari: ${st.active_scenario || "—"}.`;
+    $("demoWarn").textContent = st.warning;
+    $("scen").innerHTML = st.scenarios.map(s => `<div class="card ${s.name === st.active_scenario ? "on" : ""}"><h3>${esc(s.label)}</h3>
+      <p class="small muted">${esc(s.description)}</p><button class="btn primary" data-sc="${esc(s.name)}">Tətbiq et</button></div>`).join("");
+  } catch(e){ $("demoStatus").textContent = "Demo idarəetməsi əlçatan deyil: " + e.message; }
+}
+$("scen").addEventListener("click", async (ev) => {
+  const b = ev.target.closest("button[data-sc]"); if (!b) return;
+  b.disabled = true;
+  try { await api("/api/demo/scenarios/" + b.dataset.sc, {method: "POST"}); toast("Ssenari tətbiq olundu: " + b.dataset.sc); opFitted = false; refreshDemo(); }
+  catch(e){ toast("Xəta: " + e.message); } finally { b.disabled = false; }
+});
+$("btnReset").onclick = async () => {
+  try { await api("/api/demo/reset", {method: "POST"}); toast("Demo sıfırlandı"); opFitted = false; refreshDemo(); } catch(e){ toast("Xəta: " + e.message); }
+};
+
+loadRoutes().then(restartPolling);
+</script>
+</body>
+</html>
